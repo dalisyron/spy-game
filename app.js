@@ -38,13 +38,20 @@ function esc(s) {
     return d.innerHTML;
 }
 
+function defaultSpyCount(playerCount) {
+    if (playerCount <= 8) return 1;
+    if (playerCount <= 14) return 2;
+    return 3;
+}
+
 /* ── Game ── */
 
 function SpyGame() {
     this.app = document.getElementById('app');
     this.playerCount = 4;
     this.players = [];
-    this.spyIndex = -1;
+    this.spyIndices = [];
+    this.spyCount = 1;
     this.secretWord = '';
     this.timeLeft = TIMER_SECONDS;
     this.timerInterval = null;
@@ -126,6 +133,14 @@ SpyGame.prototype.showSetup = function () {
                     '<button class="counter-btn" data-action="minus">\u2212</button>' +
                 '</div>' +
             '</div>' +
+            '<div class="card">' +
+                '<h3 class="text-center mb-md">تعداد جاسوس\u200Cها</h3>' +
+                '<div class="counter">' +
+                    '<button class="counter-btn" data-action="spy-plus">+</button>' +
+                    '<span class="counter-value" id="spy-count-val">' + toPersian(this.spyCount) + '</span>' +
+                    '<button class="counter-btn" data-action="spy-minus">\u2212</button>' +
+                '</div>' +
+            '</div>' +
             '<div class="player-names-list" id="names-list">' + namesHtml + '</div>' +
             '<button class="btn btn-primary btn-lg" data-action="start">بزن بریم!</button>' +
             '<button class="btn btn-outline btn-sm" data-action="back">بازگشت</button>' +
@@ -134,10 +149,13 @@ SpyGame.prototype.showSetup = function () {
 
     s.querySelector('[data-action="minus"]').onclick = function () { self.changeCount(-1); };
     s.querySelector('[data-action="plus"]').onclick = function () { self.changeCount(1); };
+    s.querySelector('[data-action="spy-minus"]').onclick = function () { self.changeSpyCount(-1); };
+    s.querySelector('[data-action="spy-plus"]').onclick = function () { self.changeSpyCount(1); };
     s.querySelector('[data-action="start"]').onclick = function () { self.startGame(); };
     s.querySelector('[data-action="back"]').onclick = function () {
         self.playerCount = 4;
         self.players = [];
+        self.spyCount = 1;
         self.showHome();
     };
 };
@@ -148,6 +166,10 @@ SpyGame.prototype.changeCount = function (delta) {
     this.saveNames();
     this.playerCount = n;
     document.getElementById('count-val').textContent = toPersian(n);
+
+    this.spyCount = defaultSpyCount(n);
+    var spyEl = document.getElementById('spy-count-val');
+    if (spyEl) spyEl.textContent = toPersian(this.spyCount);
 
     var list = document.getElementById('names-list');
     if (delta > 0) {
@@ -163,6 +185,13 @@ SpyGame.prototype.changeCount = function (delta) {
         var rows = list.querySelectorAll('.player-name-row');
         if (rows.length) rows[rows.length - 1].remove();
     }
+};
+
+SpyGame.prototype.changeSpyCount = function (delta) {
+    var n = this.spyCount + delta;
+    if (n < 1 || n > this.playerCount - 2) return;
+    this.spyCount = n;
+    document.getElementById('spy-count-val').textContent = toPersian(n);
 };
 
 SpyGame.prototype.saveNames = function () {
@@ -183,7 +212,16 @@ SpyGame.prototype.startGame = function () {
     }
     this.players = p;
     this.secretWord = WORDS[Math.floor(Math.random() * WORDS.length)];
-    this.spyIndex = Math.floor(Math.random() * this.playerCount);
+
+    // Pick spyCount random unique indices via Fisher-Yates partial shuffle
+    var indices = [];
+    for (var j = 0; j < this.playerCount; j++) indices.push(j);
+    for (var j = indices.length - 1; j > 0; j--) {
+        var r = Math.floor(Math.random() * (j + 1));
+        var tmp = indices[j]; indices[j] = indices[r]; indices[r] = tmp;
+    }
+    this.spyIndices = indices.slice(0, this.spyCount);
+
     this.currentRevealIndex = 0;
     this.timeLeft = TIMER_SECONDS;
     this.selectedVote = -1;
@@ -218,7 +256,7 @@ SpyGame.prototype.showRevealPass = function () {
 
 SpyGame.prototype.showRevealCard = function () {
     var self = this;
-    var isSpy = this.currentRevealIndex === this.spyIndex;
+    var isSpy = this.spyIndices.indexOf(this.currentRevealIndex) !== -1;
 
     var backContent, backClass;
     if (isSpy) {
@@ -418,7 +456,7 @@ SpyGame.prototype.showVoting = function () {
 
     confirmBtn.onclick = function () {
         if (self.selectedVote < 0) return;
-        if (self.selectedVote === self.spyIndex) {
+        if (self.spyIndices.indexOf(self.selectedVote) !== -1) {
             self.showSpyGuess('caught');
         } else {
             self.showResult('spy', esc(self.players[self.selectedVote]) + ' جاسوس نبود!');
@@ -434,22 +472,24 @@ SpyGame.prototype.showSpyGuess = function (context) {
     this.stopTimer();
     this.selectedWord = '';
     var self = this;
-    var spyName = esc(this.players[this.spyIndex]);
+    var spyNames = this.spyIndices.map(function (i) { return self.players[i]; });
+    var spyNamesStr = spyNames.map(esc).join('\u060C ');
+    var multi = this.spyIndices.length > 1;
+    var spyLabel = multi ? 'جاسوس\u200Cها' : 'جاسوس';
 
     var title, subtitle;
     if (context === 'caught') {
-        title = '🕵️ جاسوس پیدا شد!';
-        subtitle = spyName + ' جاسوس بود! اما یک شانس آخر برای حدس کلمه دارد.';
+        title = '🕵️ ' + spyLabel + ' پیدا شد!';
+        subtitle = spyNamesStr + (multi ? ' جاسوس بودند!' : ' جاسوس بود!') + ' اما یک شانس آخر برای حدس کلمه دارد.';
     } else if (context === 'timeout') {
         title = '⏰ وقت تمام شد!';
-        subtitle = 'جاسوس باید کلمه مخفی را حدس بزند.';
+        subtitle = spyLabel + ' باید کلمه مخفی را حدس بزند.';
     } else {
-        title = '🕵️ جاسوس لو رفت!';
-        subtitle = spyName + ' جاسوس است و می‌خواهد کلمه را حدس بزند.';
+        title = '🕵️ ' + spyLabel + ' لو رفت!';
+        subtitle = spyNamesStr + (multi ? ' جاسوس هستند' : ' جاسوس است') + ' و می‌خواهد کلمه را حدس بزند.';
     }
 
     var wordsHtml = '';
-    // Show a shuffled copy so spy can't just find the word by position
     var shuffled = WORDS.slice().sort(function () { return Math.random() - 0.5; });
     for (var i = 0; i < shuffled.length; i++) {
         wordsHtml += '<button class="word-option" data-word="' + esc(shuffled[i]) + '">' + esc(shuffled[i]) + '</button>';
@@ -459,7 +499,7 @@ SpyGame.prototype.showSpyGuess = function (context) {
         '<div class="guess-container">' +
             '<h2 class="text-center">' + title + '</h2>' +
             '<p class="text-dim text-center">' + subtitle + '</p>' +
-            '<p class="text-center"><strong>' + spyName + '</strong>، کلمه مخفی کدام است؟</p>' +
+            '<p class="text-center"><strong>' + spyNamesStr + '</strong>، کلمه مخفی کدام است؟</p>' +
             '<div class="word-grid">' + wordsHtml + '</div>' +
             '<button class="btn btn-gold" data-action="guess" disabled>این کلمه است!</button>' +
         '</div>'
@@ -498,8 +538,12 @@ SpyGame.prototype.showResult = function (winner, message) {
     var self = this;
     var isSpyWin = winner === 'spy';
     var emoji = isSpyWin ? '🕵️' : '🎉';
-    var title = isSpyWin ? 'جاسوس برنده شد!' : 'شهروندان برنده شدند!';
+    var multi = this.spyIndices.length > 1;
+    var title = isSpyWin
+        ? (multi ? 'جاسوس\u200Cها برنده شدند!' : 'جاسوس برنده شد!')
+        : 'شهروندان برنده شدند!';
     var cls = isSpyWin ? 'text-accent' : 'text-green';
+    var spyNamesStr = this.spyIndices.map(function (i) { return esc(self.players[i]); }).join('\u060C ');
 
     var s = this.showScreen(
         '<div class="result-container">' +
@@ -508,8 +552,8 @@ SpyGame.prototype.showResult = function (winner, message) {
             '<p class="text-dim">' + (message || '') + '</p>' +
             '<div class="result-details">' +
                 '<div class="result-detail">' +
-                    '<span class="result-label">جاسوس:</span>' +
-                    '<span class="result-value text-accent">' + esc(this.players[this.spyIndex]) + '</span>' +
+                    '<span class="result-label">' + (multi ? 'جاسوس\u200Cها:' : 'جاسوس:') + '</span>' +
+                    '<span class="result-value text-accent">' + spyNamesStr + '</span>' +
                 '</div>' +
                 '<div class="result-detail">' +
                     '<span class="result-label">کلمه مخفی:</span>' +
@@ -529,14 +573,17 @@ SpyGame.prototype.showResult = function (winner, message) {
     s.querySelector('[data-action="again"]').onclick = function () {
         var saved = self.players.slice();
         var count = self.playerCount;
+        var sc = self.spyCount;
         self.players = saved;
         self.playerCount = count;
+        self.spyCount = sc;
         self.startGame();
     };
 
     s.querySelector('[data-action="home"]').onclick = function () {
         self.playerCount = 4;
         self.players = [];
+        self.spyCount = 1;
         self.showHome();
     };
 };
