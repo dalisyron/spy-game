@@ -288,6 +288,8 @@ h3 { font-size: 1.2rem; font-weight: 600; }
     justify-content: center;
     gap: 24px;
     padding: 8px 0;
+    /* Always lay out as [−] [value] [+] regardless of UI language (+ stays on the right). */
+    direction: rtl;
 }
 
 .counter-btn {
