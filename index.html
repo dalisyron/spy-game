@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>بازی جاسوس</title>
+    <script>
+        // Apply saved language before first paint to avoid a flash of the wrong direction.
+        (function () {
+            try {
+                var l = localStorage.getItem('spy-lang');
+                if (l !== 'en' && l !== 'fa') l = 'fa';
+                document.documentElement.lang = l;
+                document.documentElement.dir = (l === 'fa') ? 'rtl' : 'ltr';
+            } catch (e) {}
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">

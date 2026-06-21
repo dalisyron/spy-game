@@ -1,0 +1,88 @@
+Pharmacy
+Hospital
+Medical Clinic
+Dental Clinic
+Veterinary Clinic
+Restaurant
+Coffee Shop
+Bakery
+Bar
+Fast Food Restaurant
+Ice Cream Shop
+Grocery Store
+Supermarket
+Farmers Market
+Shopping Mall
+Clothing Store
+Bookstore
+Hardware Store
+Furniture Store
+Electronics Store
+Convenience Store
+Pet Store
+Jewelry Store
+Florist
+Shoe Store
+Toy Store
+Bowling Alley
+Movie Theater
+Stadium
+Gym
+Swimming Pool
+Park
+Playground
+Zoo
+Aquarium
+Museum
+Art Gallery
+Amusement Park
+Golf Course
+Concert Hall
+Theater
+Library
+Casino
+Nightclub
+Arcade
+Auto Repair Shop
+Gas Station
+Car Wash
+Bank
+Post Office
+Hair Salon
+Barbershop
+Spa
+Nail Salon
+Laundromat
+Dry Cleaner
+Hotel
+Motel
+Police Station
+Fire Station
+City Hall
+Courthouse
+Department of Motor Vehicles
+Embassy
+School
+University
+College
+Daycare
+Airport
+Train Station
+Bus Station
+Subway Station
+Ferry Terminal
+Parking Garage
+Church
+Mosque
+Temple
+Synagogue
+Farm
+Beach
+Campground
+Hiking Trail
+Botanical Garden
+National Park
+Office Building
+Factory
+Warehouse
+Construction Site

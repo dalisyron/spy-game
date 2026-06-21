@@ -35,7 +35,6 @@ body {
         radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.06), transparent 50%),
         var(--bg);
     color: var(--text);
-    direction: rtl;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
 }
@@ -75,6 +74,79 @@ body {
 
 .screen-center {
     justify-content: center;
+}
+
+/* ── Language Switch ── */
+
+.lang-switch {
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    gap: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    z-index: 200;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.lang-switch.hidden { display: none; }
+
+.lang-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.lang-btn.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* ── Mode Switch (Places / Countries) ── */
+
+.mode-switch {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mode-btn.active {
+    background: rgba(233, 69, 96, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.vote-progress-hint {
+    font-size: 0.85rem;
+    margin-top: -8px;
 }
 
 /* ── Typography ── */
@@ -205,6 +277,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
     flex-direction: column;
     gap: 20px;
     align-items: center;
+    padding-top: 44px; /* clear the fixed language switch */
 }
 
 .setup-header { text-align: center; }
@@ -282,7 +355,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
     font-size: 15px;
     outline: none;
     transition: border-color var(--transition);
-    direction: rtl;
+    direction: inherit;
 }
 
 .player-name-input:focus { border-color: var(--accent); }
@@ -512,7 +585,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition);
-    text-align: right;
+    text-align: start;
 }
 
 .vote-option:active,
@@ -535,7 +608,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .word-grid {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     max-height: 50vh;
     overflow-y: auto;
